@@ -2,28 +2,32 @@ import fitz
 import os
 
 class DocumentManager:
-    def __init__(self, controller):
-        self.c = controller
-        self.doc = None
-        self.current_page = 0
-        self.zoom_level = 1.0
-        self.padding = 30
+    def __init__(self, model):
+        self.model = model
 
     def open_pdf(self, path):
-        """Membuka file PDF dan mereset status"""
+        """Memvalidasi file dan mengupdate state di Model"""
         if not path: return None
-        self.doc = fitz.open(path)
-        self.current_page = 0
-        return os.path.basename(path)
+        try:
+            self.model.doc = fitz.open(path)
+            self.model.current_page = 0
+            self.model.total_pages = len(self.model.doc)
+            return os.path.basename(path)
+        except Exception as e:
+            print(f"Error opening PDF: {e}")
+            return None
 
     def set_zoom(self, direction):
-        """Menghitung level zoom"""
-        if direction == "in": self.zoom_level = min(5.0, self.zoom_level + 0.2)
-        else: self.zoom_level = max(0.1, self.zoom_level - 0.2)
+        """Logika kalkulasi zoom yang disimpan ke Model"""
+        if direction == "in": 
+            self.model.zoom_level = min(5.0, self.model.zoom_level + 0.2)
+        else: 
+            self.model.zoom_level = max(0.1, self.model.zoom_level - 0.2)
 
     def move_page(self, delta):
-        """Navigasi relatif halaman"""
-        if self.doc and 0 <= self.current_page + delta < len(self.doc):
-            self.current_page += delta
+        """Navigasi halaman dengan validasi range"""
+        new_page = self.model.current_page + delta
+        if 0 <= new_page < self.model.total_pages:
+            self.model.current_page = new_page
             return True
         return False

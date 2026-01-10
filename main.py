@@ -1,16 +1,20 @@
 import tkinter as tk
-from View.main_view import TkinterPDFView # Adjusted import path
+from Model.document_model import PDFDocumentModel
+from View.main_view import TkinterPDFView
 from Controller.main_controller import PDFController
-# from view_tkinter import TkinterPDFView
-# from controller import PDFController
 
 def main():
     root = tk.Tk()
-    root.title("Modular PDF Viewer Pro - Text Layer Ready")
+    root.title("Modular PDF Viewer Pro - MVC Version")
     root.geometry("1100x850")
     
-    # Dependency Injection
-    app = TkinterPDFView(root, PDFController)
+    # 1. Inisialisasi Model (Data)
+    model = PDFDocumentModel()
+    
+    # 2. Inisialisasi View & Controller via Dependency Injection
+    # Kita menggunakan lambda agar View bisa menginstansiasi Controller 
+    # dengan referensi ke dirinya sendiri dan Model.
+    app = TkinterPDFView(root, lambda v: PDFController(v, model))
     
     root.mainloop()
 
