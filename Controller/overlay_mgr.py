@@ -8,7 +8,7 @@ class OverlayManager:
         self.csv_path = None
 
     def get_csv_data(self, page_num):
-        """Parsing koordinat dari CSV untuk overlay hijau"""
+        """Parsing koordinat dari CSV termasuk kolom 'nomor' untuk interaksi"""
         if not self.csv_path or not os.path.exists(self.csv_path): return []
         data = []
         try:
@@ -21,6 +21,8 @@ class OverlayManager:
                         y0 = float(row['top'].replace(',', '.'))
                         x1 = float(row['x1'].replace(',', '.'))
                         y1 = float(row['bottom'].replace(',', '.'))
-                        data.append((x0, y0, x1, y1, row['teks']))
+                        
+                        # WAJIB: Tambahkan row['nomor'] sebagai elemen ke-6
+                        data.append((x0, y0, x1, y1, row['teks'], row['nomor']))
         except: pass
         return data

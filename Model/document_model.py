@@ -16,9 +16,13 @@ class PDFDocumentModel:
         self.csv_path = None
         self.is_sandwich = False
         self.has_csv = False
+        
+        # State Seleksi (Untuk interaksi dua arah)
+        self.selected_row_id = None 
 
     def reset(self):
-        """Mengembalikan state ke kondisi awal saat membuka dokumen baru"""
+        """Mengembalikan state ke kondisi awal"""
         self.doc = None
         self.current_page = 0
         self.zoom_level = 1.0
+        self.selected_row_id = None
