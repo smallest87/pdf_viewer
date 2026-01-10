@@ -16,9 +16,7 @@ class PDFViewInterface(ABC):
     def draw_csv_layer(self, words, ox, oy, zoom): pass
     
     @abstractmethod
-    def update_ui_info(self, page_num, total, zoom, is_sandwich, width, height, has_csv): 
-        """Memperbarui teks informasi di UI termasuk status file CSV"""
-        pass
+    def update_ui_info(self, page_num, total, zoom, is_sandwich, width, height, has_csv): pass
 
     @abstractmethod
     def get_viewport_size(self): pass
