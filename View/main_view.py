@@ -120,7 +120,7 @@ class TkinterPDFView(PDFViewInterface):
 
             # Highlight jika ID cocok dengan Model
             is_active = (str(row_id) == str(selected_id))
-            l_width = 4 if is_active else 1
+            l_width = 2 if is_active else 1
             o_color = "red" if is_active else color
 
             r_id = self.viewport.canvas.create_rectangle(
