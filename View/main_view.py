@@ -4,6 +4,7 @@ from interface import PDFViewInterface
 from View.toolbar import PyQt6Toolbar
 from View.viewport import PyQt6Viewport
 from View.status_bar import PyQt6StatusBar
+from View.dockers.csv_table_view import PyQt6CSVTableView
 
 class PyQt6PDFView(QMainWindow, PDFViewInterface):
     def __init__(self, root_app, controller_factory):
@@ -54,7 +55,6 @@ class PyQt6PDFView(QMainWindow, PDFViewInterface):
 
     def show_csv_panel(self, headers, data):
         """Menampilkan widget tabel di dalam panel dock."""
-        from View.csv_table_view import PyQt6CSVTableView
         self.csv_table_widget = PyQt6CSVTableView(
             self, headers, data, self.controller._handle_table_click
         )
