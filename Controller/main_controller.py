@@ -54,8 +54,8 @@ class PDFController:
     def open_csv_table(self):
         if not self.model.has_csv: return
         try:
-            with open(self.model.csv_path, mode='r', encoding='utf-8-sig') as f:
-                reader = csv.reader(f, delimiter=';')
+            with open(self.model.csv_path, mode='r', encoding='utf-8-sig', newline='') as f:
+                reader = csv.reader(f, delimiter=';', quotechar='"')
                 headers = next(reader)
                 data = [list(row) for row in reader]
             self.view.show_csv_panel(headers, data)
@@ -150,3 +150,16 @@ class PDFController:
         # Memicu pemusatan vertikal otomatis jika ada item terpilih
         if self.model.selected_row_id:
             self.view.update_highlight_only(self.model.selected_row_id)
+
+    # Tambahkan metode ini di dalam kelas PDFController di main_controller.py
+    def start_export(self, path, range_str):
+        if not self.model.doc: return
+        
+        # Gunakan parse_ranges dari export_mgr untuk mendapatkan index halaman
+        indices = self.export_mgr.parse_ranges(range_str, self.model.total_pages)
+        
+        if indices is not None:
+            # Jalankan ekstraksi teks ke CSV
+            self.export_mgr.to_csv(self.model.doc, path, indices, self.view)
+            # Segarkan status UI untuk mendeteksi file CSV baru jika diperlukan
+            self.refresh(full_refresh=False)

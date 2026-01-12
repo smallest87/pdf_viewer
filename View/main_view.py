@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QSplitter, QDockWidget, QFileDialog
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QSplitter, QDockWidget, QFileDialog, QFileDialog, QInputDialog, QLineEdit
 from PyQt6.QtCore import Qt
 from interface import PDFViewInterface
 from View.toolbar import PyQt6Toolbar
@@ -101,7 +101,25 @@ class PyQt6PDFView(QMainWindow, PDFViewInterface):
         if path: self.controller.open_document(path)
 
     def _on_view_csv_table(self): self.controller.open_csv_table()
-    def _on_export_csv(self): pass
+
+    def _on_export_csv(self):
+        if not self.controller.model.doc: 
+            return
+            
+        # 1. Minta rentang halaman (opsional, default semua halaman)
+        total = self.controller.model.total_pages
+        range_str, ok = QInputDialog.getText(
+            self, "Export Range", 
+            f"Masukkan halaman (1-{total}) atau kosongkan untuk semua:",
+            QLineEdit.EchoMode.Normal, f"1-{total}"
+        )
+        if not ok: return
+
+        # 2. Minta lokasi penyimpanan file
+        path, _ = QFileDialog.getSaveFileName(self, "Export CSV", "", "CSV Files (*.csv)")
+        if path:
+            # 3. Panggil controller untuk memproses ekspor
+            self.controller.start_export(path, range_str)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

@@ -12,8 +12,8 @@ class OverlayManager:
         if not self.csv_path or not os.path.exists(self.csv_path): return []
         data = []
         try:
-            with open(self.csv_path, mode='r', encoding='utf-8-sig') as f:
-                reader = csv.DictReader(f, delimiter=';')
+            with open(self.csv_path, mode='r', encoding='utf-8-sig', newline='') as f:
+                reader = csv.DictReader(f, delimiter=';', quotechar='"')
                 for row in reader:
                     if int(row['halaman']) == page_num:
                         # Konversi koordinat float
