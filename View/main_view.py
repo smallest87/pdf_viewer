@@ -109,6 +109,7 @@ class PyQt6PDFView(QMainWindow, PDFViewInterface):
 
     def update_coord_display(self, x0, top):
         self.coord_widget.update_coords(x0, top)
+        print(f"[DEBUG] Updated coord display to ({x0}, {top}) from MainView")
 
     def show_csv_panel(self, headers, data):
         child = self.get_active_child()
@@ -132,6 +133,7 @@ class PyQt6PDFView(QMainWindow, PDFViewInterface):
 
     # --- SLOT EVENT ---
     def _on_open(self):
+        print("[DEBUG] Triggered Open File Dialog")
         path, _ = QFileDialog.getOpenFileName(self, "Open PDF", "", "PDF Files (*.pdf)")
         if path:
             new_sub = PDFMdiChild(self, PDFDocumentModel) 
@@ -140,10 +142,12 @@ class PyQt6PDFView(QMainWindow, PDFViewInterface):
             new_sub.controller.open_document(path)
 
     def _on_view_csv_table(self):
+        print("[DEBUG] Triggered View CSV Table")
         child = self.get_active_child()
         if child: child.controller.open_csv_table()
 
     def _on_export_csv(self):
+        print("[DEBUG] Triggered Export CSV Dialog")
         child = self.get_active_child()
         if not child or not child.model.doc: return
         total = child.model.total_pages
@@ -152,6 +156,7 @@ class PyQt6PDFView(QMainWindow, PDFViewInterface):
             child.controller.start_export(path, range_str)
 
     def resizeEvent(self, event):
+        print(f"[DEBUG] Window Resize Event Triggered")
         super().resizeEvent(event)
         # PERBAIKAN: Gunakan active child untuk mendapatkan lebar viewport
         if self.csv_dock.isVisible():

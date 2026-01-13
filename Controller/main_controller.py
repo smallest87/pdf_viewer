@@ -85,6 +85,7 @@ class PDFController:
         elif tag == "csv_layer":
             self.overlay_mgr.show_csv_layer = is_visible
         self.refresh(full_refresh=False) # Refresh tanpa render ulang pixmap
+        print(f"[DEBUG] Global state changed: {tag} set to {is_visible}")
 
     def open_document(self, path):
         """Memuat dokumen dan melakukan pre-indexing CSV untuk performa."""
@@ -132,6 +133,7 @@ class PDFController:
     def set_zoom(self, direction):
         self.doc_mgr.set_zoom(direction)
         self.refresh(full_refresh=True)
+        print(f"Zoom level sekarang: {self.model.zoom_level}")
 
     def open_csv_table(self):
         """Membuka data CSV ke panel Dock utama."""

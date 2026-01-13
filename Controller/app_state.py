@@ -10,7 +10,8 @@ class GlobalAppState(QObject):
         # 2. Status disimpan di variabel pusat
         self._layers = {
             "text_layer": False,
-            "csv_layer": False
+            "csv_layer": False,
+            "live_coords": True  # Default: Aktif sesuai inisialisasi di UI
         }
 
     def set_visibility(self, tag, is_visible):

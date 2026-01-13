@@ -2,8 +2,6 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QListView
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
 from PyQt6.QtCore import Qt
-
-# Wajib import app_state sebagai pusat kebenaran
 from Controller.app_state import app_state
 
 class LayerManagerWidget(QWidget):

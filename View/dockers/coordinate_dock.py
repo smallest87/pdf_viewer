@@ -1,4 +1,6 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, 
+                             QLabel, QFrame, QCheckBox
+)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
@@ -10,7 +12,24 @@ class CoordinateDock(QWidget):
     def _setup_ui(self):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(8) # Memberi jarak antar elemen
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        # 1. Kontrol Centang "Aktifkan" (Baru)
+        self.chk_active = QCheckBox("Aktifkan")
+        self.chk_active.setChecked(True) # Default aktif
+        self.chk_active.setFont(QFont("Segoe UI", 9))
+        self.chk_active.setStyleSheet("""
+            QCheckBox {
+                color: #495057;
+                padding: 2px;
+            }
+            QCheckBox::indicator {
+                width: 14px;
+                height: 14px;
+            }
+        """)
+        layout.addWidget(self.chk_active)
 
         # Container styling
         self.frame = QFrame()

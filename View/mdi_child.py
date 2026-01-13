@@ -1,6 +1,7 @@
 # File: View/mdi_child.py
 from PyQt6.QtWidgets import QMdiSubWindow, QWidget, QVBoxLayout
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QImage, QPixmap
 from View.viewport import PyQt6Viewport
 from Controller.main_controller import PDFController
 from View.components.child_nav_bar import ChildNavBar # Tambahkan import ini
@@ -15,6 +16,7 @@ class PDFMdiChild(QMdiSubWindow):
         self.controller = PDFController(self, self.model)
         
         self._setup_ui()
+        print(f"[DEBUG] Created PDFMdiChild with Model ID: {id(self.model)} and Controller ID: {id(self.controller)}")
 
     def _setup_ui(self):
         self.main_container = QWidget()
@@ -33,7 +35,7 @@ class PDFMdiChild(QMdiSubWindow):
         self.setWidget(self.main_container)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
-    # --- JEMBATAN KE KOMPONEN GLOBAL (Main Window) ---
+        print(f"[DEBUG] UI setup complete for PDFMdiChild with Model ID: {id(self.model)}")
 
     @property
     def toolbar(self):
@@ -48,18 +50,20 @@ class PDFMdiChild(QMdiSubWindow):
     def show_csv_panel(self, headers, data):
         """Membuka panel CSV di dock jendela utama."""
         self.parent_view.show_csv_panel(headers, data)
+        print(f"[DEBUG] Requested CSV panel display from MdiChild with Model ID: {id(self.model)}")
 
     def update_progress(self, v):
         """Update progress bar di status bar utama."""
         self.parent_view.update_progress(v)
+        print(f"[DEBUG] Updated progress to {v}% from MdiChild with Model ID: {id(self.model)}")
 
     # --- IMPLEMENTASI INTERFACE UNTUK CONTROLLER ---
 
     def get_viewport_size(self): 
         return self.viewport.width(), self.viewport.height()
     
+    
     def display_page(self, pix, ox, oy, region):
-        from PyQt6.QtGui import QImage, QPixmap
         qimg = QImage(pix.samples, pix.width, pix.height, pix.stride, QImage.Format.Format_RGB888)
         self.viewport.set_background_pdf(QPixmap.fromImage(qimg), ox, oy, region)
 
@@ -87,6 +91,7 @@ class PDFMdiChild(QMdiSubWindow):
         if self.parent_view.mdi_area.activeSubWindow() == self:
             self.parent_view.toolbar.update_layer_states(s, c)
             self.parent_view.status_bar.update_status(z, s, w, h)
+        print(f"[DEBUG] UI info updated: Page {p}/{t}, Zoom {z}, Sandwich {s}, CSV {c} from MdiChild with Model ID: {id(self.model)}")
 
     def update_highlight_only(self, sid):
         """Sinkronisasi highlight antara PDF dan Tabel CSV Global."""
