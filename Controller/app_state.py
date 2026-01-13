@@ -1,9 +1,11 @@
 from PyQt6.QtCore import QObject, pyqtSignal
 
+
 class GlobalAppState(QObject):
     """Pusat data status aplikasi (Single Source of Truth)."""
+
     # Sinyal untuk memberitahu UI bahwa status berubah
-    visibility_changed = pyqtSignal(str, bool) # tag, status
+    visibility_changed = pyqtSignal(str, bool)  # tag, status
 
     def __init__(self):
         super().__init__()
@@ -11,7 +13,7 @@ class GlobalAppState(QObject):
         self._layers = {
             "text_layer": False,
             "csv_layer": False,
-            "live_coords": True  # Default: Aktif sesuai inisialisasi di UI
+            "live_coords": True,  # Default: Aktif sesuai inisialisasi di UI
         }
 
     def set_visibility(self, tag, is_visible):
@@ -24,6 +26,7 @@ class GlobalAppState(QObject):
     def get_visibility(self, tag):
         """Ambil nilai status dari variabel pusat."""
         return self._layers.get(tag, False)
+
 
 # Instance tunggal yang akan digunakan semua komponen
 app_state = GlobalAppState()

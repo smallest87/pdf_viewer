@@ -1,5 +1,5 @@
-from PyQt6.QtWidgets import QStatusBar, QLabel, QProgressBar
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QLabel, QProgressBar, QStatusBar
+
 
 class PyQt6StatusBar(QStatusBar):
     def __init__(self, parent):

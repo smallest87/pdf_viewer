@@ -1,5 +1,7 @@
-import fitz
 import os
+
+import fitz
+
 
 class DocumentManager:
     def __init__(self, model):
@@ -7,7 +9,8 @@ class DocumentManager:
 
     def open_pdf(self, path):
         """Memvalidasi file dan mengupdate state di Model"""
-        if not path: return None
+        if not path:
+            return None
         try:
             self.model.doc = fitz.open(path)
             self.model.current_page = 0
@@ -19,9 +22,9 @@ class DocumentManager:
 
     def set_zoom(self, direction):
         """Logika kalkulasi zoom yang disimpan ke Model"""
-        if direction == "in": 
+        if direction == "in":
             self.model.zoom_level = min(5.0, self.model.zoom_level + 0.2)
-        else: 
+        else:
             self.model.zoom_level = max(0.1, self.model.zoom_level - 0.2)
 
     def move_page(self, delta):

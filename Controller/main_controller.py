@@ -1,10 +1,13 @@
-import fitz
-import os
 import csv
+import os
+
+import fitz
+
 from Controller.app_state import app_state
 from Controller.document_mgr import DocumentManager
-from Controller.overlay_mgr import OverlayManager
 from Controller.export_mgr import ExportManager
+from Controller.overlay_mgr import OverlayManager
+
 
 class PDFController:
     def __init__(self, view, model):
@@ -17,16 +20,17 @@ class PDFController:
 
         # Konfigurasi Internal
         self.group_tolerance = 2.0
-        self.page_data_cache = [] # Cache data CSV per halaman
-        self.words_cache = {} # Cache teks PDF: {page_index: words_list}
+        self.page_data_cache = []  # Cache data CSV per halaman
+        self.words_cache = {}  # Cache teks PDF: {page_index: words_list}
 
         # SINKRONISASI GLOBAL: Setiap jendela bereaksi jika ada perubahan status global
         app_state.visibility_changed.connect(self._on_global_state_changed)
 
     def refresh(self, full_refresh=True):
         """Fungsi utama penyegaran tampilan dengan sistem Caching."""
-        if not self.model.doc: return
-        
+        if not self.model.doc:
+            return
+
         p_idx = self.model.current_page
         page = self.model.doc[p_idx]
         vw, _ = self.view.get_viewport_size()
@@ -43,7 +47,7 @@ class PDFController:
             region = (0, 0, max(vw, pix.width), pix.height + (oy * 2))
             self.view.display_page(pix, ox, oy, region)
             self.view.draw_rulers(page.rect.width, page.rect.height, ox, oy, z)
-            
+
             # Ambil data CSV dari cache memori (Bukan Disk)
             self.page_data_cache = self.overlay_mgr.get_csv_data(p_idx + 1)
         else:
@@ -54,7 +58,7 @@ class PDFController:
         # --- TAHAP 2: RENDERING TEKS LAYER (CACHE) ---
         if p_idx not in self.words_cache:
             self.words_cache[p_idx] = page.get_text("words")
-        
+
         if self.overlay_mgr.show_text_layer:
             self.view.draw_text_layer(self.words_cache[p_idx], ox, oy, z)
         else:
@@ -70,8 +74,13 @@ class PDFController:
         self.model.has_csv = os.path.exists(self.model.csv_path or "")
         # Kirim data p, t, z, s, w, h, c untuk child_nav_bar
         self.view.update_ui_info(
-            p_idx + 1, self.model.total_pages, z, 
-            bool(page.get_text().strip()), page.rect.width, page.rect.height, self.model.has_csv
+            p_idx + 1,
+            self.model.total_pages,
+            z,
+            bool(page.get_text().strip()),
+            page.rect.width,
+            page.rect.height,
+            self.model.has_csv,
         )
         self.view.set_grouping_control_state(self.model.doc is not None)
 
@@ -84,7 +93,7 @@ class PDFController:
             self.overlay_mgr.show_text_layer = is_visible
         elif tag == "csv_layer":
             self.overlay_mgr.show_csv_layer = is_visible
-        self.refresh(full_refresh=False) # Refresh tanpa render ulang pixmap
+        self.refresh(full_refresh=False)  # Refresh tanpa render ulang pixmap
         print(f"[DEBUG] Global state changed: {tag} set to {is_visible}")
 
     def open_document(self, path):
@@ -93,28 +102,35 @@ class PDFController:
         if fname:
             self.model.file_name = fname
             self.model.file_path = path
-            self.model.csv_path = path.rsplit('.', 1)[0] + ".csv"
-            self.words_cache = {} # Reset cache teks untuk dokumen baru
-            
+            self.model.csv_path = path.rsplit(".", 1)[0] + ".csv"
+            self.words_cache = {}  # Reset cache teks untuk dokumen baru
+
             # OPTIMASI: Indexing CSV satu kali di awal
             if os.path.exists(self.model.csv_path):
                 self.overlay_mgr.load_csv_to_cache(self.model.csv_path)
-                
+
             self.view.set_application_title(fname)
             self.refresh(full_refresh=True)
 
     def save_csv_data(self, headers, data):
         """Menyimpan data dan langsung memperbarui cache overlay."""
-        if not self.model.csv_path: return
+        if not self.model.csv_path:
+            return
         try:
-            with open(self.model.csv_path, mode='w', encoding='utf-8-sig', newline='') as f:
-                writer = csv.writer(f, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            with open(
+                self.model.csv_path, mode="w", encoding="utf-8-sig", newline=""
+            ) as f:
+                writer = csv.writer(
+                    f, delimiter=";", quotechar='"', quoting=csv.QUOTE_MINIMAL
+                )
                 writer.writerow(headers)
                 writer.writerows(data)
-            
+
             # Update cache internal agar perubahan langsung terlihat di viewport
             self.overlay_mgr.load_csv_to_cache(self.model.csv_path)
-            self.page_data_cache = self.overlay_mgr.get_csv_data(self.model.current_page + 1)
+            self.page_data_cache = self.overlay_mgr.get_csv_data(
+                self.model.current_page + 1
+            )
             self.refresh(full_refresh=False)
         except Exception as e:
             print(f"[ERROR] Auto-save gagal: {e}")
@@ -137,10 +153,13 @@ class PDFController:
 
     def open_csv_table(self):
         """Membuka data CSV ke panel Dock utama."""
-        if not self.model.has_csv: return
+        if not self.model.has_csv:
+            return
         try:
-            with open(self.model.csv_path, mode='r', encoding='utf-8-sig', newline='') as f:
-                reader = csv.reader(f, delimiter=';', quotechar='"')
+            with open(
+                self.model.csv_path, mode="r", encoding="utf-8-sig", newline=""
+            ) as f:
+                reader = csv.reader(f, delimiter=";", quotechar='"')
                 headers = next(reader)
                 data = [list(row) for row in reader]
             self.view.show_csv_panel(headers, data)
@@ -151,10 +170,11 @@ class PDFController:
         """Sinkronisasi saat baris di tabel Dock diklik."""
         try:
             row_id = str(row_data[0])
-            if self.model.selected_row_id == row_id: return
+            if self.model.selected_row_id == row_id:
+                return
             target_page = int(row_data[1]) - 1
             self.model.selected_row_id = row_id
-            
+
             if target_page == self.model.current_page:
                 self.view.update_highlight_only(row_id)
             else:
@@ -171,13 +191,24 @@ class PDFController:
     def get_grouped_ids(self):
         """Logika pengelompokan baris berdasarkan sumbu Y (Horizontal Grouping)."""
         # Cek status grouping dari Toolbar Global via Parent View
-        if not hasattr(self.view, 'parent_view') or not self.view.parent_view.toolbar.chk_group.isChecked():
+        if (
+            not hasattr(self.view, "parent_view")
+            or not self.view.parent_view.toolbar.chk_group.isChecked()
+        ):
             return set()
         if not self.model.selected_row_id:
             return set()
 
-        target = next((d for d in self.page_data_cache if str(d[5]) == str(self.model.selected_row_id)), None)
-        if not target: return set()
+        target = next(
+            (
+                d
+                for d in self.page_data_cache
+                if str(d[5]) == str(self.model.selected_row_id)
+            ),
+            None,
+        )
+        if not target:
+            return set()
 
         t_sumbu = (target[1] + target[3]) / 2
         grouped_ids = set()
@@ -188,20 +219,22 @@ class PDFController:
         return grouped_ids
 
     def toggle_line_grouping(self):
-        if self.model.selected_row_id: 
+        if self.model.selected_row_id:
             self.view.update_highlight_only(self.model.selected_row_id)
 
     def update_tolerance(self, val):
         """Update toleransi pengelompokan sumbu."""
         try:
-            self.group_tolerance = float(str(val).replace(',', '.'))
-            if self.model.selected_row_id: 
+            self.group_tolerance = float(str(val).replace(",", "."))
+            if self.model.selected_row_id:
                 self.view.update_highlight_only(self.model.selected_row_id)
-        except ValueError: pass
+        except ValueError:
+            pass
 
     def start_export(self, path, range_str):
         """Memulai proses ekspor teks ke CSV."""
-        if not self.model.doc: return
+        if not self.model.doc:
+            return
         indices = self.export_mgr.parse_ranges(range_str, self.model.total_pages)
         if indices is not None:
             self.export_mgr.to_csv(self.model.doc, path, indices, self.view)

@@ -1,18 +1,26 @@
 # File: View/main_view.py
-from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QDockWidget, 
-    QFileDialog, QInputDialog, QLineEdit, QMdiArea
-)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction
+from PyQt6.QtWidgets import (
+    QDockWidget,
+    QFileDialog,
+    QInputDialog,
+    QLineEdit,
+    QMainWindow,
+    QMdiArea,
+    QVBoxLayout,
+    QWidget,
+)
+
 from interface import PDFViewInterface
-from View.toolbar import PyQt6Toolbar
-from View.status_bar import PyQt6StatusBar
+from Model.document_model import PDFDocumentModel
+from View.dockers.coordinate_dock import CoordinateDock
 from View.dockers.csv_table_view import PyQt6CSVTableView
 from View.dockers.layer_manager import LayerManagerWidget
-from View.dockers.coordinate_dock import CoordinateDock
-from Model.document_model import PDFDocumentModel
 from View.mdi_child import PDFMdiChild
+from View.status_bar import PyQt6StatusBar
+from View.toolbar import PyQt6Toolbar
+
 
 class PyQt6PDFView(QMainWindow, PDFViewInterface):
     def __init__(self, root_app, controller_factory):
@@ -21,10 +29,10 @@ class PyQt6PDFView(QMainWindow, PDFViewInterface):
         self.base_title = "PDF-Nexus Ultimate V4"
         self.setWindowTitle(self.base_title)
         self.resize(1280, 800)
-        
-        self.controller_factory = controller_factory 
+
+        self.controller_factory = controller_factory
         self.csv_table_widget = None
-        
+
         self._setup_ui()
         self._setup_dock_widget()
 
@@ -52,7 +60,7 @@ class PyQt6PDFView(QMainWindow, PDFViewInterface):
         file_menu = menubar.addMenu("&File")
         file_menu.addAction(self.toolbar.open_act)
         file_menu.addAction(self.toolbar.export_act)
-        
+
         self.window_menu = menubar.addMenu("&Window")
         self.window_menu.aboutToShow.connect(self._update_window_menu)
 
@@ -61,13 +69,13 @@ class PyQt6PDFView(QMainWindow, PDFViewInterface):
         tile_act = QAction("Tile Windows", self)
         tile_act.triggered.connect(self.mdi_area.tileSubWindows)
         self.window_menu.addAction(tile_act)
-        
+
         cascade_act = QAction("Cascade Windows", self)
         cascade_act.triggered.connect(self.mdi_area.cascadeSubWindows)
         self.window_menu.addAction(cascade_act)
-        
+
         self.window_menu.addSeparator()
-        
+
         windows = self.mdi_area.subWindowList()
         if not windows:
             empty_act = QAction("No Documents Open", self)
@@ -79,7 +87,9 @@ class PyQt6PDFView(QMainWindow, PDFViewInterface):
             action = QAction(f"{i+1}. {window.windowTitle()}", self)
             action.setCheckable(True)
             action.setChecked(window == self.mdi_area.activeSubWindow())
-            action.triggered.connect(lambda checked, w=window: self.mdi_area.setActiveSubWindow(w))
+            action.triggered.connect(
+                lambda checked, w=window: self.mdi_area.setActiveSubWindow(w)
+            )
             self.window_menu.addAction(action)
 
     def get_active_child(self):
@@ -103,7 +113,7 @@ class PyQt6PDFView(QMainWindow, PDFViewInterface):
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dock_coords)
 
         self.layer_dock = QDockWidget("Layers", self)
-        self.layer_manager = LayerManagerWidget(self) 
+        self.layer_manager = LayerManagerWidget(self)
         self.layer_dock.setWidget(self.layer_manager)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.layer_dock)
 
@@ -113,7 +123,8 @@ class PyQt6PDFView(QMainWindow, PDFViewInterface):
 
     def show_csv_panel(self, headers, data):
         child = self.get_active_child()
-        if not child: return
+        if not child:
+            return
         self.csv_table_widget = PyQt6CSVTableView(
             self, headers, data, child.controller._handle_table_click
         )
@@ -125,10 +136,10 @@ class PyQt6PDFView(QMainWindow, PDFViewInterface):
         self.status_bar.set_progress(v)
         self.app.processEvents()
 
-    def set_application_title(self, f): 
+    def set_application_title(self, f):
         self.setWindowTitle(f"{self.base_title} - {f}")
 
-    def set_grouping_control_state(self, a): 
+    def set_grouping_control_state(self, a):
         self.toolbar.set_grouping_enabled(a)
 
     # --- SLOT EVENT ---
@@ -136,7 +147,7 @@ class PyQt6PDFView(QMainWindow, PDFViewInterface):
         print("[DEBUG] Triggered Open File Dialog")
         path, _ = QFileDialog.getOpenFileName(self, "Open PDF", "", "PDF Files (*.pdf)")
         if path:
-            new_sub = PDFMdiChild(self, PDFDocumentModel) 
+            new_sub = PDFMdiChild(self, PDFDocumentModel)
             self.mdi_area.addSubWindow(new_sub)
             new_sub.show()
             new_sub.controller.open_document(path)
@@ -144,22 +155,36 @@ class PyQt6PDFView(QMainWindow, PDFViewInterface):
     def _on_view_csv_table(self):
         print("[DEBUG] Triggered View CSV Table")
         child = self.get_active_child()
-        if child: child.controller.open_csv_table()
+        if child:
+            child.controller.open_csv_table()
 
     def _on_export_csv(self):
         print("[DEBUG] Triggered Export CSV Dialog")
         child = self.get_active_child()
-        if not child or not child.model.doc: return
+        if not child or not child.model.doc:
+            return
         total = child.model.total_pages
-        range_str, ok = QInputDialog.getText(self, "Export Range", f"Halaman (1-{total}):", QLineEdit.EchoMode.Normal, f"1-{total}")
-        if ok and (path := QFileDialog.getSaveFileName(self, "Export CSV", "", "CSV Files (*.csv)")[0]):
+        range_str, ok = QInputDialog.getText(
+            self,
+            "Export Range",
+            f"Halaman (1-{total}):",
+            QLineEdit.EchoMode.Normal,
+            f"1-{total}",
+        )
+        if ok and (
+            path := QFileDialog.getSaveFileName(
+                self, "Export CSV", "", "CSV Files (*.csv)"
+            )[0]
+        ):
             child.controller.start_export(path, range_str)
 
     def resizeEvent(self, event):
-        print(f"[DEBUG] Window Resize Event Triggered")
+        print("[DEBUG] Window Resize Event Triggered")
         super().resizeEvent(event)
         # PERBAIKAN: Gunakan active child untuk mendapatkan lebar viewport
         if self.csv_dock.isVisible():
             child = self.get_active_child()
             vp_w = child.viewport.width() if child else 0
-            print(f"[DEBUG] Window Resize -> [Dock: {self.csv_dock.width()}px] vs [Active Viewport: {vp_w}px]")
+            print(
+                f"[DEBUG] Window Resize -> [Dock: {self.csv_dock.width()}px] vs [Active Viewport: {vp_w}px]"
+            )

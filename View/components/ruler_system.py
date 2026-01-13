@@ -1,9 +1,11 @@
-from PyQt6.QtWidgets import QWidget, QGridLayout, QSizePolicy, QAbstractScrollArea
 from PyQt6.QtCore import Qt, pyqtSlot
-from PyQt6.QtGui import QPen, QColor, QPainter
+from PyQt6.QtGui import QColor, QPainter, QPen
+from PyQt6.QtWidgets import QAbstractScrollArea, QGridLayout, QSizePolicy, QWidget
+
 
 class ModularRuler(QWidget):
     """Widget penggaris yang murni menangani penggambaran (rendering)."""
+
     def __init__(self, orientation, parent=None):
         super().__init__(parent)
         self.orientation = orientation
@@ -11,7 +13,7 @@ class ModularRuler(QWidget):
         self.offset = 0
         self.doc_size = 0
         self.scroll_val = 0
-        
+
         if self.orientation == Qt.Orientation.Horizontal:
             self.setFixedHeight(25)
             self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
@@ -26,18 +28,22 @@ class ModularRuler(QWidget):
         self.scroll_val = scroll_val
         self.update()
 
-    def paintEvent(self, event):
+    def paint_event(self, event):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         p.fillRect(self.rect(), QColor("#bcbcbc"))
         p.setPen(QPen(QColor("#333333"), 1))
-        
+
         is_horz = self.orientation == Qt.Orientation.Horizontal
         step = 100 if self.zoom_scale < 1.0 else 50
 
         for u in range(0, int(self.doc_size) + 1, 10):
             pos = (u * self.zoom_scale + self.offset) - self.scroll_val
-            if pos < -100 or (is_horz and pos > self.width()) or (not is_horz and pos > self.height()):
+            if (
+                pos < -100
+                or (is_horz and pos > self.width())
+                or (not is_horz and pos > self.height())
+            ):
                 continue
 
             if is_horz:
@@ -53,14 +59,16 @@ class ModularRuler(QWidget):
                 elif u % 10 == 0:
                     p.drawLine(25, int(pos), 18, int(pos))
 
+
 class RulerWrapper(QWidget):
     """Wrapper yang membungkus QGraphicsView dengan penggaris H/V secara otomatis."""
+
     def __init__(self, target_widget: QAbstractScrollArea):
         super().__init__()
         self.target = target_widget
         self.h_ruler = ModularRuler(Qt.Orientation.Horizontal)
         self.v_ruler = ModularRuler(Qt.Orientation.Vertical)
-        
+
         self._doc_params = {"dw": 0, "dh": 0, "ox": 0, "oy": 0, "z": 1.0}
 
         self._setup_layout()
@@ -72,11 +80,11 @@ class RulerWrapper(QWidget):
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
-        
+
         corner = QWidget()
         corner.setFixedSize(25, 25)
         corner.setStyleSheet("background-color: #bcbcbc;")
-        
+
         layout.addWidget(corner, 0, 0)
         layout.addWidget(self.h_ruler, 0, 1)
         layout.addWidget(self.v_ruler, 1, 0)

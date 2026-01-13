@@ -1,8 +1,7 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, 
-                             QLabel, QFrame, QCheckBox
-)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import QCheckBox, QFrame, QLabel, QVBoxLayout, QWidget
+
 
 class CoordinateDock(QWidget):
     def __init__(self):
@@ -12,14 +11,15 @@ class CoordinateDock(QWidget):
     def _setup_ui(self):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
-        layout.setSpacing(8) # Memberi jarak antar elemen
+        layout.setSpacing(8)  # Memberi jarak antar elemen
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # 1. Kontrol Centang "Aktifkan" (Baru)
         self.chk_active = QCheckBox("Aktifkan")
-        self.chk_active.setChecked(True) # Default aktif
+        self.chk_active.setChecked(True)  # Default aktif
         self.chk_active.setFont(QFont("Segoe UI", 9))
-        self.chk_active.setStyleSheet("""
+        self.chk_active.setStyleSheet(
+            """
             QCheckBox {
                 color: #495057;
                 padding: 2px;
@@ -28,12 +28,15 @@ class CoordinateDock(QWidget):
                 width: 14px;
                 height: 14px;
             }
-        """)
+        """
+        )
         layout.addWidget(self.chk_active)
 
         # Container styling
         self.frame = QFrame()
-        self.frame.setStyleSheet("background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;")
+        self.frame.setStyleSheet(
+            "background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;"
+        )
         frame_layout = QVBoxLayout(self.frame)
 
         self.lbl_title = QLabel("PDF REALTIME COORDS")
@@ -43,7 +46,7 @@ class CoordinateDock(QWidget):
         # Label untuk x0 dan top
         self.val_x0 = QLabel("x0: 0.00")
         self.val_top = QLabel("top: 0.00")
-        
+
         for lbl in [self.val_x0, self.val_top]:
             lbl.setFont(QFont("Consolas", 9))
             lbl.setStyleSheet("border: none;")
@@ -51,7 +54,7 @@ class CoordinateDock(QWidget):
         frame_layout.addWidget(self.lbl_title)
         frame_layout.addWidget(self.val_x0)
         frame_layout.addWidget(self.val_top)
-        
+
         layout.addWidget(self.frame)
         layout.addStretch()
 
@@ -61,8 +64,12 @@ class CoordinateDock(QWidget):
             self.val_x0.setText("x0 :    -   ")
             self.val_top.setText("top:    -   ")
             # Opsional: Ubah warna jadi abu-abu saat tidak aktif
-            self.val_x0.setStyleSheet("color: #adb5bd; border: none; font-weight: bold;")
-            self.val_top.setStyleSheet("color: #adb5bd; border: none; font-weight: bold;")
+            self.val_x0.setStyleSheet(
+                "color: #adb5bd; border: none; font-weight: bold;"
+            )
+            self.val_top.setStyleSheet(
+                "color: #adb5bd; border: none; font-weight: bold;"
+            )
         else:
             self.val_x0.setText(f"x0 : {x0:>8.2f}")
             self.val_top.setText(f"top: {top:>8.2f}")
