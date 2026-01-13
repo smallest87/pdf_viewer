@@ -1,3 +1,4 @@
+# File: Controller/overlay_mgr.py
 import os
 import csv
 
@@ -6,23 +7,34 @@ class OverlayManager:
         self.show_text_layer = False
         self.show_csv_layer = False
         self.csv_path = None
+        self._csv_cache = {} # Cache: {halaman: [data_list]}
 
-    def get_csv_data(self, page_num):
-        """Parsing koordinat dari CSV termasuk kolom 'nomor' untuk interaksi"""
-        if not self.csv_path or not os.path.exists(self.csv_path): return []
-        data = []
+    def load_csv_to_cache(self, path):
+        """Membaca CSV satu kali dan menyimpannya dalam memori berdasarkan halaman."""
+        if not path or not os.path.exists(path): return
+        self.csv_path = path
+        self._csv_cache = {}
+        
         try:
-            with open(self.csv_path, mode='r', encoding='utf-8-sig', newline='') as f:
+            with open(path, mode='r', encoding='utf-8-sig', newline='') as f:
                 reader = csv.DictReader(f, delimiter=';', quotechar='"')
                 for row in reader:
-                    if int(row['halaman']) == page_num:
-                        # Konversi koordinat float
-                        x0 = float(row['x0'].replace(',', '.'))
-                        y0 = float(row['top'].replace(',', '.'))
-                        x1 = float(row['x1'].replace(',', '.'))
-                        y1 = float(row['bottom'].replace(',', '.'))
-                        
-                        # WAJIB: Tambahkan row['nomor'] sebagai elemen ke-6
-                        data.append((x0, y0, x1, y1, row['teks'], row['nomor']))
-        except: pass
-        return data
+                    p_num = int(row['halaman'])
+                    if p_num not in self._csv_cache:
+                        self._csv_cache[p_num] = []
+                    
+                    # Simpan data yang sudah dikonversi
+                    self._csv_cache[p_num].append((
+                        float(row['x0'].replace(',', '.')),
+                        float(row['top'].replace(',', '.')),
+                        float(row['x1'].replace(',', '.')),
+                        float(row['bottom'].replace(',', '.')),
+                        row['teks'],
+                        row['nomor']
+                    ))
+        except Exception as e:
+            print(f"Error caching CSV: {e}")
+
+    def get_csv_data(self, page_num):
+        """Mendapatkan data dari cache (Sangat Cepat)."""
+        return self._csv_cache.get(page_num, [])
