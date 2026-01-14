@@ -13,6 +13,9 @@ _desain/
 # Ruff cache
 .ruff_cache/
 
+# Sphinx build
+docs/
+
 # IDE & OS
 .vscode/
 .idea/

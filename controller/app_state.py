@@ -4,8 +4,14 @@ from PyQt6.QtCore import QObject, pyqtSignal
 class GlobalAppState(QObject):
     """Pusat data status aplikasi (Single Source of Truth)."""
 
-    # Sinyal untuk memberitahu UI bahwa status berubah
-    visibility_changed = pyqtSignal(str, bool)  # tag, status
+    # Definisi signal
+    visibility_changed = pyqtSignal(str, bool)
+    """
+    Sinyal untuk memberitahu UI bahwa status berubah.
+    
+    :param tag: Nama layer (str)
+    :param status: Status visibilitas (bool)
+    """
 
     def __init__(self):
         super().__init__()
@@ -17,7 +23,16 @@ class GlobalAppState(QObject):
         }
 
     def set_visibility(self, tag, is_visible):
-        """Update status dan pancarkan sinyal ke semua widget."""
+        """
+        Update status visibilitas layer dan informasikan ke seluruh UI.
+
+        Args:
+            tag (str): Identitas layer (contoh: 'text_layer', 'csv_layer').
+            is_visible (bool): True jika layer harus ditampilkan, False jika disembunyikan.
+
+        Returns:
+            None
+        """
         if tag in self._layers:
             self._layers[tag] = is_visible
             # Memancarkan sinyal agar semua UI ter-update
