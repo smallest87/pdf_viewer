@@ -1,6 +1,6 @@
 # File: View/toolbar.py
 from PyQt6.QtCore import QSize
-from PyQt6.QtGui import QAction
+from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtWidgets import (
     QCheckBox,
     QLineEdit,
@@ -22,7 +22,7 @@ class PyQt6Toolbar(QToolBar):
         app_state.visibility_changed.connect(self._sync_checkboxes)
 
         self.setMovable(False)
-        self.setIconSize(QSize(24, 24))
+        self.setIconSize(QSize(32, 32))
         self._build_ui()
 
     def _get_active_controller(self):
@@ -36,16 +36,18 @@ class PyQt6Toolbar(QToolBar):
 
         # 1. FILE & DATA CONTROLS
         self.open_act = QAction(
-            style.standardIcon(style.StandardPixmap.SP_DialogOpenButton),
+            QIcon("icons/open_pdf.png"),  # Ganti dengan path PNG Anda
             "Open PDF",
             self,
         )
         self.open_act.triggered.connect(self.view._on_open)
         self.addAction(self.open_act)
 
+        self.addSeparator()
+
         self.export_act = QAction(
-            style.standardIcon(style.StandardPixmap.SP_DialogSaveButton),
-            "Export CSV",
+            QIcon("icons/ekspor_csv.png"),  # Ganti dengan path PNG Anda
+            "Ekspor PDF",
             self,
         )
         self.export_act.triggered.connect(self.view._on_export_csv)

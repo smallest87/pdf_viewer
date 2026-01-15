@@ -27,21 +27,47 @@ class PDFController:
         app_state.visibility_changed.connect(self._on_global_state_changed)
 
     def _refresh(self, full_refresh=True):
-        """Fungsi utama penyegaran tampilan dengan sistem Caching."""
+        """
+        1.  VALIDASI AWAL:
+            - Jika dokumen tidak dimuat, HENTIKAN proses.
+        """
         if not self.model.doc:
             return
+
+        """
+        2.  INISIALISASI DATA:
+            - Ambil indeks halaman saat ini.
+            - Ambil objek halaman dari model.
+            - Ambil ukuran viewport (lebar/tinggi) dari view.
+            - Ambil tingkat zoom dari model.
+        """
 
         p_idx = self.model.current_page
         page = self.model.doc[p_idx]
         vw, _ = self.view.get_viewport_size()
         z = self.model.zoom_level
 
-        # Sinkronisasi status layer dengan Global App State sebelum rendering
+        """
+        3.  SINKRONISASI STATUS LAYER:
+            - Perbarui status visibilitas 'Text Layer' dari Global State.
+            - Perbarui status visibilitas 'CSV Layer' dari Global State.
+        """
         self._overlay_mgr.show_text_layer = app_state.get_visibility("text_layer")
         self._overlay_mgr.show_csv_layer = app_state.get_visibility("csv_layer")
 
-        # --- TAHAP 1: RENDERING GAMBAR (PIXMAP) ---
+        """
+        4.  TAHAP 1: RENDERING RASTER (PIXMAP)
+        """
         if full_refresh:
+            """
+            JIKA full_refresh ADALAH TRUE:
+                - Render halaman menjadi pixmap berdasarkan matrix zoom.
+                - Hitung Offset X (tengah) dan Offset Y (padding).
+                - Hitung wilayah (region) render.
+                - Instruksikan View untuk menampilkan Pixmap.
+                - Gambar penggaris (rulers) pada UI.
+                - Ambil data CSV untuk halaman ini dan simpan di cache memori.
+            """
             pix = page.get_pixmap(matrix=fitz.Matrix(z, z))
             ox, oy = max(0, (vw - pix.width) / 2), self.model.padding
             region = (0, 0, max(vw, pix.width), pix.height + (oy * 2))
@@ -51,26 +77,58 @@ class PDFController:
             # Ambil data CSV dari cache memori (Bukan Disk)
             self._page_data_cache = self._overlay_mgr.get_csv_data(p_idx + 1)
         else:
-            # Kalkulasi ulang offset jika hanya zoom/toggle layer tanpa reload pixmap
+            """
+            JIKA TIDAK (Partial Refresh):
+                - Hitung ulang Offset X dan Y saja tanpa merender ulang pixmap.
+            """
             ox = max(0, (vw - (page.rect.width * z)) / 2)
             oy = self.model.padding
 
-        # --- TAHAP 2: RENDERING TEKS LAYER (CACHE) ---
+        """
+        5.  TAHAP 2: RENDERING TEXT LAYER (CACHING)
+        """
         if p_idx not in self._words_cache:
+            """
+            - JIKA data kata (words) untuk halaman ini belum ada di cache:
+                - Ekstrak data kata dari halaman PDF dan simpan ke cache.n
+            """
             self._words_cache[p_idx] = page.get_text("words")
 
         if self._overlay_mgr.show_text_layer:
+            """
+            - JIKA visibilitas Text Layer aktif:
+                - Instruksikan View untuk menggambar layer teks.
+            """
             self.view.draw_text_layer(self._words_cache[p_idx], ox, oy, z)
         else:
+            """
+            - JIKA TIDAK:
+                - Bersihkan overlay layer teks dari View.
+            """
             self.view.clear_overlay_layer("text_layer")
 
-        # --- TAHAP 3: RENDERING CSV OVERLAY ---
+        """
+        6.  TAHAP 3: RENDERING CSV OVERLAY
+        """
         if self._overlay_mgr.show_csv_layer:
+            """
+            - JIKA visibilitas CSV Layer aktif:
+                - Instruksikan View untuk menggambar layer CSV menggunakan data dari cache.
+            """
             self.view.draw_csv_layer(self._page_data_cache, ox, oy, z)
         else:
+            """
+            - JIKA TIDAK:
+                - Bersihkan overlay layer CSV dari View.
+            """
             self.view.clear_overlay_layer("csv_layer")
 
-        # --- TAHAP 4: SINKRONISASI UI ---
+        """
+        7.  TAHAP 4: SINKRONISASI UI & STATE
+            - Periksa apakah file CSV fisik tersedia di penyimpanan.
+            - Perbarui informasi UI (nomor halaman, total, zoom, ketersediaan teks, dimensi, status CSV).
+            - Atur status kontrol grouping pada UI.
+        """
         self.model.has_csv = os.path.exists(self.model.csv_path or "")
         # Kirim data p, t, z, s, w, h, c untuk child_nav_bar
         self.view.update_ui_info(
@@ -85,6 +143,10 @@ class PDFController:
         self.view.set_grouping_control_state(self.model.doc is not None)
 
         if self.model.selected_row_id:
+            """
+            - JIKA ada baris (row) yang terpilih:
+                - Perbarui highlight pada baris tersebut di View.
+            """
             self.view.update_highlight_only(self.model.selected_row_id)
 
     def _on_global_state_changed(self, tag, is_visible):
