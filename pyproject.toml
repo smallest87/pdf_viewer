@@ -7,7 +7,7 @@ target-version = "py310"
 line-length = 88
 
 [tool.ruff.lint]
-select = ["E", "F", "B", "I", "N", "UP"] # UP untuk pyupgrade (saran Python terbaru)
+select = ["E", "F", "B", "I", "N", "UP", "D"] # UP untuk pyupgrade (saran Python terbaru)
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
